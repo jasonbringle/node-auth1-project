@@ -20,7 +20,6 @@
   },
   "homepage": "https://github.com/jasonbringle/node-auth1-project#readme",
   "dependencies": {
-    "bcrypt": "^5.0.0",
     "bcryptjs": "^2.4.3",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",

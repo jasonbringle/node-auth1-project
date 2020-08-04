@@ -23,4 +23,21 @@ server.post("/api/register",(req,res) => {
         })
 })
 
+server.post('/api/login', (req,res) => {
+    const body = req.body
+
+    Db.findUser(body)
+        .then(user => {
+            if(user && bcrypt.hashSync(body.password, user.password)){
+                // req.session.user = user;
+                res.status(200).json({ message: `${user.name} is logged in!`})
+            } else {
+                res.status(401).json({errormessage: "You are not logged in."})
+            }
+        })
+        .catch(err => {
+            res.status(500).json({ errormessage: "Could not get the user"})
+        })
+})
+
 module.exports = server;
