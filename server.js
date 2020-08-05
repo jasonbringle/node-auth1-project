@@ -1,88 +1,48 @@
+const session = require('express-session');
+const knexSessionStore = require('connect-session-knex')(session);
+
 const express = require("express");
 const helmet = require("helmet");
-const bcrypt = require("bcryptjs");
-const Db = require("./users/users-model");
-const dbConfig = require('./data/db-config.js');
-const session = require('express-session')
+const cors = require('cors');
+
+const restricted = require('./auth/restricted-middleware.js');
+
+const usersRouter = require('./users/users-router.js')
+const authRouter = require('./auth/auth-router.js')
+
 
 const server = express();
 
 const sessionConfig = {
-    name:'monkey',
-    secret: "keep it secret,keep it safe", //Changes in production
-    cookie: {
-        maxAge: 10000,
-        secure: false, //In develpement this is okay.  It enables cookie to be sent when not secure
-        httpOnly: true,  //Cookie cannot be accessed by JS
+    name: 'Monkey',
+    secret:'keep it secret...',
+    cookie:{
+      maxAge: 10000,
+      secure: false,
+      httpOnly: true
     },
-    resave: false, //Recreate a session even if it hasnt changed?
-    saveUninitialized: false, //GDPR compliance.  This will be dynamic because the user needs to opt-in to receive cookies.
-}
-
-server.use(session(sessionConfig))
-server.use(helmet());
-server.use(express.json());
-
-function protected(req, res, next) {
-    if (req.session && req.session.user) {
-      next();
-    } else {
-      res.status(401).json({ message: 'you shall not pass!!' });
-    }
+    resave: false,
+    saveUninitialized: false,
+    store: new knexSessionStore({
+      knex: require('./data/connection.js'),
+      tablename: 'sessions',
+      sidfieldname: 'sid',
+      createtable: true,
+      clearInterval: 1000 *60 *60
+    })
   }
 
+server.use(helmet());
+server.use(express.json());
+server.use(cors())
+server.use(session(sessionConfig))
 
-server.post("/api/register",(req,res) => {
-    const creds = req.body
-    const hash = bcrypt.hashSync(creds.password, 14)
-    creds.password = hash
-    Db.register(creds)
-        .then(added => {
-            res.status(201).json(added)
-        })
-        .catch(err => {
-            res.status(500).json({message: 'You did not create a user'})
-        })
-})
 
-server.post('/api/login', (req,res) => {
-    const body = req.body
+server.use("/api/users", restricted, usersRouter);
+server.use('/api/auth',  authRouter);
 
-    Db.findUser(body)
-        .then(user => {
-            if(user && bcrypt.hashSync(body.password, user.password)){
-                req.session.user = user;
-                res.status(200).json({ message: `${user.name} is logged in!`})
-            } else {
-                res.status(401).json({errormessage: "You shall not pass!"})
-            }
-        })
-        .catch(err => {
-            res.status(500).json({ errormessage: "Could not get the user"})
-        })
-})
-
-server.get("/api/users", protected,(req,res) => {
-    Db.getUsers()
-        .then(users =>{
-            res.status(201).json(users)
-        })
-        .catch(err => {
-            res.status(500).json({ errormessage: 'Could not get the users'})
-        })
-
-})
-
-server.get("/api/logout", (req,res) => {
-    if (req.session) {
-        req.session.destroy(err => {
-          if (err) {
-            res.send('error logging out');
-          } else {
-            res.send('good bye');
-          }
-        });
-      }
-})
+server.get("/", (req, res) => {
+  res.json({ api: "up" });
+});
 
 module.exports = server;
