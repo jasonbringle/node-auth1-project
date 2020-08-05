@@ -2,7 +2,8 @@ const db = require('../data/db-config.js');
 
 module.exports = {
     register,
-    findUser
+    findUser,
+    getUsers
 }
 
 
@@ -20,5 +21,12 @@ function findUser(user){
         .where({name:user.name})
         .then(found => {
             return found[0]})
+}
+
+function getUsers(){
+    return db('users')
+        .then(users => {
+            return users
+        })
 }
 
