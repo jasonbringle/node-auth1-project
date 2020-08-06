@@ -35,6 +35,7 @@ router.post('/login', (req,res) => {
         .then(user => {
             if(user && bcrypt.hashSync(body.password, user.password)){
                 req.session.user = user;
+                console.log(req.session)
                 res.status(200).json({ message: `${user.name} is logged in!`})
             } else {
                 res.status(401).json({errormessage: "You shall not pass!"})
