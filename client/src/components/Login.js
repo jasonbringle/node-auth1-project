@@ -18,7 +18,7 @@ const handleChange = e => {
         axios
         .post("http://localhost:7000/api/auth/login", login)
         .then(res => {
-            console.log("LOGIN response",res)
+            return alert(`you have been logged in!`)
         })
         .catch(err => {
             console.log({message:"There was an error"})

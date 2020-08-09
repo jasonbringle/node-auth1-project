@@ -1,7 +1,9 @@
 const router = require('express').Router();
 const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken")
 
 const Db = require("../users/users-model.js");
+const secrets = require('../config/secrets.js')
 const restricted = require("./restricted-middleware.js")
 
 router.post("/register",(req,res) => {
@@ -34,9 +36,11 @@ router.post('/login', (req,res) => {
     Db.findUser(body)
         .then(user => {
             if(user && bcrypt.hashSync(body.password, user.password)){
+                const token = generateToken(user)
                 req.session.user = user;
-                console.log(req.session)
-                res.status(200).json({ message: `${user.name} is logged in!`})
+                res.status(200).json({ message: `${user.name} is logged in!`,
+                    token
+                })
             } else {
                 res.status(401).json({errormessage: "You shall not pass!"})
             }
@@ -45,6 +49,18 @@ router.post('/login', (req,res) => {
             res.status(500).json({ errormessage: "Could not get the user"})
         })
 })
+
+function generateToken(user){
+    const payload ={
+        subject: user.id,
+        username: user.username,
+    }
+     const options ={
+         expiresIn: '8h',
+
+     }
+    return jwt.sign(payload, secrets.jwtSecret, options)
+}
 
 router.delete('/logout', (req, res) => {
     if (req.session) {

@@ -1,11 +1,11 @@
 import React, { useState,useEffect } from "react";
-import Axios from "axios";
+import axios from "axios";
 
 export default function DisplayUsers(){
 const [ users, setUsers ] = useState()
 console.log(users)
     useEffect(()=>{
-        Axios
+        axios
         .get("http://localhost:7000/api/auth/users")
         .then(res => {
             setUsers(res.data)
