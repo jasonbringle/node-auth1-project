@@ -3,21 +3,25 @@ import axios from "axios";
 
 export default function DisplayUsers(){
 const [ users, setUsers ] = useState()
-console.log(users)
     useEffect(()=>{
         axios
-        .get("http://localhost:7000/api/auth/users")
+        .get("http://localhost:7000/api/users")
         .then(res => {
             setUsers(res.data)
         })
         .catch(err => {
             alert("Could not get users!")
         })
-    },[users])
+    },[])
 
     return (
         <div>
-            <p>Display Users!</p>
+            {users && users.map(user => 
+                <div key={user.id}>
+                    <h1>{user.name}</h1>
+            <p>{user.id}</p>
+                </div>)}
+            
         </div>
     )
 }

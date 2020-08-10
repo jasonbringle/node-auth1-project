@@ -62,17 +62,19 @@ function generateToken(user){
     return jwt.sign(payload, secrets.jwtSecret, options)
 }
 
-router.delete('/logout', (req, res) => {
+router.get('/logout', (req, res) => {
     if (req.session) {
-        req.session.destroy((err) => {
+        req.session.destroy(err => {
             if (err) {
+                console.log("There was an error when deleteing")
+
                 res.status(401).json({ message: 'Error logging out.', error:err});
             } else {
                 res.json({message:'good bye'});
             }
         });
       } else{
-          res.end()
+          res.status(200).json({message: "Youve been logged out."})
       }
 });
 
